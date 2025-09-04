@@ -43,7 +43,7 @@ const SignInScreen = () => {
         identifier: email,
         password,
       });
-
+    
       if (signInAttempt.status === "complete") {
         await setActive({ session: signInAttempt.createdSessionId });
       } else {
@@ -51,8 +51,23 @@ const SignInScreen = () => {
         console.error(JSON.stringify(signInAttempt, null, 2));
       }
     } catch (err) {
-      Alert.alert("Error", err.errors?.[0]?.message || "Sign in failed");
-      console.error(JSON.stringify(err, null, 2));
+      let errorMessage = "Sign in failed";
+    
+      // Clerk-specific errors
+      if (err.errors?.[0]?.message) {
+        errorMessage = err.errors[0].message;
+      }
+      // Network / Internet issue
+      else if (err.message?.includes("Network") || err.message?.includes("fetch")) {
+        errorMessage = "No internet connection. Please check your network.";
+      }
+      // Timeout or unknown
+      else if (err.message) {
+        errorMessage = err.message;
+      }
+    
+      Alert.alert("Error", errorMessage);
+      console.error("SignIn Error:", err.message, err.errors);
     } finally {
       setLoading(false);
     }
@@ -63,7 +78,7 @@ const SignInScreen = () => {
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={authStyles.keyboardView}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 120: 0}
       >
         <ScrollView
           contentContainerStyle={authStyles.scrollContent}

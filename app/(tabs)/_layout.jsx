@@ -33,7 +33,16 @@ const TabsLayout = () => {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Recipes",
+          title: "Home",
+          tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} />,
+        }}
+      />
+
+      <Tabs.Screen
+        name="cropPrice"
+        options={{
+          //title: "CropPrice",
+          tabBarLabel: "Crop Prices",
           tabBarIcon: ({ color, size }) => <Ionicons name="leaf-sharp" size={size} color={color} />,
         }}
       />
