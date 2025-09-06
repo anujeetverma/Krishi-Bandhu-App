@@ -40,7 +40,10 @@
     "react-native-web": "~0.20.0",
     "react-native-webview": "13.13.5",
     "@react-native-picker/picker": "2.11.1",
-    "expo-auth-session": "~6.2.1"
+    "expo-auth-session": "~6.2.1",
+    "expo-location": "~18.1.6",
+    "expo-linear-gradient": "~14.1.5",
+    "react-native-svg": "15.11.2"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

@@ -36,7 +36,7 @@ export default function AgmarknetPrices() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Agmarknet Daily Prices</Text>
+      <Text style={styles.title}>Crop Live Prices</Text>
 
       <TextInput
         style={styles.input}
