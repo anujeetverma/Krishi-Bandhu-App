@@ -217,9 +217,9 @@ const WeatherDashboard = () => {
           </View>
 <View style={styles.infoBlock}>
   
-  <Text style={styles.weatherDescription}>{getWeatherDescription(selectedDay.weather_code)}</Text>
+<Text style={styles.weatherDescription}>{getWeatherDescription(selectedDay.weather_code)}</Text>
+  
   <View style={styles.detailsGrid}>
-
     <View style={styles.detailItem}>
       <View style={styles.detailsGrid}>
         <DetailIcon type="humidity" color={COLORS.text} />
