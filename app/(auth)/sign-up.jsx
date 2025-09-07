@@ -14,7 +14,6 @@ import { useState } from "react";
 import { authStyles } from "../../assets/styles/auth.styles";
 import { Image } from "expo-image";
 import { COLORS } from "../../constants/colors";
-
 import { Ionicons } from "@expo/vector-icons";
 import VerifyEmail from "./verify-email";
 

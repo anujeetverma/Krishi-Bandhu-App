@@ -9,7 +9,7 @@ import { View, Text, StyleSheet, SafeAreaView, ActivityIndicator, ScrollView, To
 import * as Location from 'expo-location';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Svg, Path, Line, Circle, Polyline } from 'react-native-svg';
-
+import styles from '../../assets/styles/weather.styles';
 
 // --- THEME ---
 const COLORS = {
@@ -193,7 +193,7 @@ const WeatherDashboard = () => {
           </LinearGradient>
           <View>
             <Text>
-              
+
             </Text>
           </View>
 
@@ -215,46 +215,68 @@ const WeatherDashboard = () => {
               ))}
             </ScrollView>
           </View>
-          <Text style={styles.weatherDescription}>{getWeatherDescription(selectedDay.weather_code)}</Text>
-          <View style={styles.detailsGrid}>
-            <View style={styles.detailItem}>
-                <DetailIcon type="humidity" color={COLORS.textLight} />
-                <Text style={styles.detailValue}>{current.relative_humidity_2m}%</Text>
-                <Text style={styles.detailLabel}>Humidity</Text>
-            </View>
-            <View style={styles.detailItem}>
-                <DetailIcon type="precipitation" color={COLORS.textLight} />
-                <Text style={styles.detailValue}>{selectedDay.precipitation} mm</Text>
-                <Text style={styles.detailLabel}>Precipitation</Text>
-            </View>
-            <View style={styles.detailItem}>
-                <DetailIcon type="pressure" color={COLORS.textLight} />
-                <Text style={styles.detailValue}>{Math.round(current.surface_pressure)} hPa</Text>
-                <Text style={styles.detailLabel}>Pressure</Text>
-            </View>
-             <View style={styles.detailItem}>
-                <DetailIcon type="wind" color={COLORS.textLight} />
-                <Text style={styles.detailValue}>{Math.round(selectedDay.wind_speed)} km/h</Text>
-                <Text style={styles.detailLabel}>Wind</Text>
-            </View>
-          </View>
+<View style={styles.infoBlock}>
+  
+  <Text style={styles.weatherDescription}>{getWeatherDescription(selectedDay.weather_code)}</Text>
+  <View style={styles.detailsGrid}>
 
-          <View style={styles.sunGrid}>
-            <View style={styles.sunItem}>
-                 <DetailIcon type="sunrise" color={COLORS.text} />
-                 <View>
-                    <Text style={styles.sunLabel}>Sunrise</Text>
-                    <Text style={styles.sunTime}>{formatTime(selectedDay.sunrise)}</Text>
-                 </View>
-            </View>
-            <View style={styles.sunItem}>
-                <DetailIcon type="sunset" color={COLORS.text} />
-                <View>
-                    <Text style={styles.sunLabel}>Sunset</Text>
-                    <Text style={styles.sunTime}>{formatTime(selectedDay.sunset)}</Text>
-                </View>
-            </View>
-          </View>
+    <View style={styles.detailItem}>
+      <View style={styles.detailsGrid}>
+        <DetailIcon type="humidity" color={COLORS.text} />
+        <View>
+        <Text style={styles.detailLabel}>Humidity</Text>
+        <Text style={styles.detailValue}>{current.relative_humidity_2m}%</Text>
+        </View>
+        </View>
+    </View>
+    <View style={styles.detailItem}>
+      <View style= {styles.detailsGrid}>
+        <DetailIcon type="precipitation" color={COLORS.text} />
+        <View>
+        <Text style={styles.detailLabel}>Precipitation</Text>
+        <Text style={styles.detailValue}>{selectedDay.precipitation} mm</Text>
+        </View>
+    </View>
+    </View>
+
+    <View style={styles.detailItem}>
+      <View style={styles.detailsGrid}>
+        <DetailIcon type="pressure" color={COLORS.text} />
+        <View>
+        <Text style={styles.detailLabel}>Pressure</Text>
+        <Text style={styles.detailValue}>{Math.round(current.surface_pressure)} hPa</Text>
+        </View>
+    </View>
+    </View>
+    
+    
+     <View style={styles.detailItem}>
+      <View style={styles.detailsGrid}>
+        <DetailIcon type="wind" color={COLORS.text} />
+        <View>
+          <Text style={styles.detailLabel}>Wind</Text>
+          <Text style={styles.detailValue}>{Math.round(selectedDay.wind_speed)} km/h</Text>
+        </View>
+        </View>
+    </View>
+  </View>
+  <View style={styles.sunGrid}>
+    <View style={styles.sunItem}>
+         <DetailIcon type="sunrise" color={COLORS.text} />
+         <View>
+            <Text style={styles.sunLabel}>Sunrise</Text>
+            <Text style={styles.sunTime}>{formatTime(selectedDay.sunrise)}</Text>
+         </View>
+    </View>
+    <View style={styles.sunItem}>
+        <DetailIcon type="sunset" color={COLORS.text} />
+        <View>
+            <Text style={styles.sunLabel}>Sunset</Text>
+            <Text style={styles.sunTime}>{formatTime(selectedDay.sunset)}</Text>
+        </View>
+    </View>
+  </View>
+</View>
         </ScrollView>
       );
     }
@@ -269,174 +291,4 @@ const WeatherDashboard = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  dashboardWrapper: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  dashboardContainer: {
-    flex: 1,
-    padding: 20,
-  },
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: COLORS.text,
-  },
-  errorText: {
-    textAlign: 'center',
-    fontSize: 16,
-    color: 'red',
-  },
-  header: {
-    marginBottom: 16,
-  },
-  greeting: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: COLORS.text,
-  },
-  date: {
-    fontSize: 14,
-    color: COLORS.textLight,
-    marginTop: 4,
-  },
-  forecastContainer: {
-    marginBottom: 24,
-  },
-  forecastItem: {
-    backgroundColor: 'rgba(255, 255, 255, 0.7)',
-    borderRadius: 20,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    marginRight: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  forecastItemSelected: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  forecastText: {
-    color: COLORS.text,
-    fontSize: 12,
-  },
-  forecastDate: {
-    color: COLORS.text,
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  forecastTemp: {
-    color: COLORS.text,
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: 4,
-  },
-  forecastTextSelected: {
-    color: COLORS.white,
-  },
-  mainCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: COLORS.shadow,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.2,
-    shadowRadius: 15,
-    elevation: 10,
-  },
-  mainCardLeft: {},
-  location: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: COLORS.white,
-    opacity: 0.9,
-  },
-  mainTemp: {
-    fontSize: 64,
-    fontWeight: 'bold',
-    color: COLORS.white,
-    lineHeight: 70,
-  },
-  minMaxTemp: {
-    fontSize: 14,
-    color: COLORS.white,
-    marginTop: 8,
-    opacity: 0.9,
-  },
-  mainCardRight: {},
-  weatherDescription: {
-      textAlign: 'center',
-      marginTop: 16,
-      fontSize: 16,
-      color: COLORS.text,
-      fontWeight: '500'
-  },
-  detailsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    marginTop: 24,
-  },
-  detailItem: {
-    backgroundColor: COLORS.card,
-    borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    width: '48%', 
-    marginBottom: 16,
-  },
-  detailValue: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    marginVertical: 4,
-  },
-  detailLabel: {
-    fontSize: 12,
-    color: COLORS.textLight,
-  },
-  sunGrid: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      marginTop: 0, 
-  },
-  sunItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: COLORS.card,
-      borderRadius: 16,
-      padding: 16,
-      borderWidth: 1,
-      borderColor: COLORS.border,
-      width: '48%',
-  },
-  sunLabel: {
-      fontSize: 14,
-      color: COLORS.textLight,
-      marginLeft: 12,
-      marginBottom: 4,
-  },
-  sunTime: {
-      fontSize: 16,
-      fontWeight: 'bold',
-      color: COLORS.text,
-      marginLeft: 12,
-  }
-});
-
 export default WeatherDashboard;
-
