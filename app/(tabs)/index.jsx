@@ -9,7 +9,6 @@ import { View, Text, StyleSheet, SafeAreaView, ActivityIndicator, ScrollView, To
 import * as Location from 'expo-location';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Svg, Path, Line, Circle, Polyline } from 'react-native-svg';
-import styles from '../../assets/styles/weather.styles';
 
 // --- THEME ---
 const COLORS = {
@@ -32,7 +31,7 @@ const getGreeting = () => {
 };
 
 const formatDate = (date) => {
-    return date.toLocaleDateString('en-US', {
+    return date.toLocaleString('en-US', {
         weekday: 'long',
         month: 'short',
         day: 'numeric',
@@ -50,13 +49,13 @@ const getDayOfMonth = (dateString) => {
     return date.getDate();
 }
 
-
 const getWeatherDescription = (code) => {
   const descriptions = { 0: 'Clear', 1: 'Mainly Clear', 2: 'Partly Cloudy', 3: 'Overcast', 45: 'Fog', 48: 'Rime Fog', 51: 'Light Drizzle', 53: 'Drizzle', 55: 'Dense Drizzle', 61: 'Slight Rain', 63: 'Rain', 65: 'Heavy Rain', 71: 'Slight Snow', 73: 'Snow', 75: 'Heavy Snow', 80: 'Rain Showers', 81: 'Rain Showers', 82: 'Violent Showers', 95: 'Thunderstorm', 96: 'Thunderstorm', 99: 'Thunderstorm'};
   return descriptions[code] || 'Unknown';
 };
 
 const formatTime = (dateString) => {
+    if (!dateString) return 'N/A';
     const date = new Date(dateString);
     return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
 };
@@ -71,7 +70,9 @@ const DetailIcon = ({ type, color }) => {
         pressure: <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Path d="M21.5 12H19.25a7.5 7.5 0 1 0-15 0H2.5"></Path><Path d="M12 5.5V2.5"></Path><Path d="M12 21.5V18.5"></Path></Svg>,
         wind: <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Path d="M9.59 4.59A2 2 0 1 1 11 8H2"></Path><Path d="M14.41 19.41A2 2 0 1 0 13 16H2"></Path><Path d="M2 12h17.5"></Path></Svg>,
         sunrise: <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Path d="M17 18a5 5 0 0 0-10 0"></Path><Line x1="12" y1="2" x2="12" y2="9"></Line><Line x1="4.22" y1="10.22" x2="5.64" y2="8.81"></Line><Line x1="1" y1="18" x2="3" y2="18"></Line><Line x1="21" y1="18" x2="23" y2="18"></Line><Line x1="18.36" y1="8.81" x2="19.78" y2="10.22"></Line><Line x1="23" y1="22" x2="1" y2="22"></Line><Polyline points="8 6 12 2 16 6"></Polyline></Svg>,
-        sunset: <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Path d="M17 18a5 5 0 0 0-10 0"></Path><Line x1="12" y1="9" x2="12" y2="2"></Line><Line x1="4.22" y1="10.22" x2="5.64" y2="8.81"></Line><Line x1="1" y1="18" x2="3" y2="18"></Line><Line x1="21" y1="18" x2="23" y2="18"></Line><Line x1="18.36" y1="8.81" x2="19.78" y2="10.22"></Line><Line x1="23" y1="22" x2="1" y2="22"></Line><Polyline points="16 5 12 9 8 5"></Polyline></Svg>
+        sunset: <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Path d="M17 18a5 5 0 0 0-10 0"></Path><Line x1="12" y1="9" x2="12" y2="2"></Line><Line x1="4.22" y1="10.22" x2="5.64" y2="8.81"></Line><Line x1="1" y1="18" x2="3" y2="18"></Line><Line x1="21" y1="18" x2="23" y2="18"></Line><Line x1="18.36" y1="8.81" x2="19.78" y2="10.22"></Line><Line x1="23" y1="22" x2="1" y2="22"></Line><Polyline points="16 5 12 9 8 5"></Polyline></Svg>,
+        soil_moisture: <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Path d="M20.71 11.29a10 10 0 1 0-17.42 0"></Path><Path d="M12 12v-8"></Path></Svg>,
+        temperature: <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><Path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"></Path></Svg>
     };
     return icons[type] || null;
 }
@@ -94,13 +95,14 @@ const WeatherIcon = ({ code, size, color }) => {
 // --- The Dashboard Component ---
 const WeatherDashboard = () => {
   const [weatherData, setWeatherData] = useState(null);
+  const [soilData, setSoilData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [locationName, setLocationName] = useState("Your Location");
   const [selectedDayIndex, setSelectedDayIndex] = useState(0);
 
   useEffect(() => {
-    const fetchWeatherData = async () => {
+    const fetchData = async () => {
       setLoading(true);
       
       let { status } = await Location.requestForegroundPermissionsAsync();
@@ -111,6 +113,7 @@ const WeatherDashboard = () => {
       }
 
       try {
+        // Fetch Location and Weather
         let location = await Location.getCurrentPositionAsync({});
         const { latitude, longitude } = location.coords;
         
@@ -125,15 +128,29 @@ const WeatherDashboard = () => {
         if (!response.ok) throw new Error('Failed to fetch weather data.');
         const data = await response.json();
         setWeatherData(data);
+
+        // Fetch Soil Data
+        const SOIL_API_URL = 'https://api.thingspeak.com/channels/3007544/feeds.json?results=2';
+        const soilResponse = await fetch(SOIL_API_URL);
+        if(soilResponse.ok){
+            const soilJson = await soilResponse.json();
+            if (soilJson.feeds && soilJson.feeds.length > 0) {
+                setSoilData(soilJson.feeds[soilJson.feeds.length - 1]); // Get the latest feed
+            }
+        } else {
+             console.error("Failed to fetch soil data.");
+        }
+
         setError(null);
       } catch (e) {
-        setError('Could not fetch weather data. Check connection.');
+        console.error(e);
+        setError('Could not fetch data. Check connection.');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchWeatherData();
+    fetchData();
   }, []);
 
   const renderContent = () => {
@@ -163,9 +180,6 @@ const WeatherDashboard = () => {
           sunrise: daily.sunrise[selectedDayIndex],
           sunset: daily.sunset[selectedDayIndex],
       };
-
-      // Note: The Open-Meteo API does not provide daily humidity or pressure,
-      // so we will show the current values for those details.
       
       return (
         <ScrollView showsVerticalScrollIndicator={false}>
@@ -173,8 +187,6 @@ const WeatherDashboard = () => {
             <Text style={styles.greeting}>{getGreeting()}</Text>
             <Text style={styles.date}>{formatDate(new Date(daily.time[selectedDayIndex]))}</Text>
           </View>
-
-          
 
           <LinearGradient
             colors={[COLORS.primary, COLORS.textLight]}
@@ -191,13 +203,7 @@ const WeatherDashboard = () => {
                 <WeatherIcon code={selectedDay.weather_code} size={80} color={COLORS.white} />
             </View>
           </LinearGradient>
-          <View>
-            <Text>
-
-            </Text>
-          </View>
-
-          {/* --- HORIZONTAL FORECAST --- */}
+         
           <View style={styles.forecastContainer}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {daily.time.map((date, index) => (
@@ -215,68 +221,32 @@ const WeatherDashboard = () => {
               ))}
             </ScrollView>
           </View>
-<View style={styles.infoBlock}>
-  
-<Text style={styles.weatherDescription}>{getWeatherDescription(selectedDay.weather_code)}</Text>
-  
-  <View style={styles.detailsGrid}>
-    <View style={styles.detailItem}>
-      <View style={styles.detailsGrid}>
-        <DetailIcon type="humidity" color={COLORS.text} />
-        <View>
-        <Text style={styles.detailLabel}>Humidity</Text>
-        <Text style={styles.detailValue}>{current.relative_humidity_2m}%</Text>
-        </View>
-        </View>
-    </View>
-    <View style={styles.detailItem}>
-      <View style= {styles.detailsGrid}>
-        <DetailIcon type="precipitation" color={COLORS.text} />
-        <View>
-        <Text style={styles.detailLabel}>Precipitation</Text>
-        <Text style={styles.detailValue}>{selectedDay.precipitation} mm</Text>
-        </View>
-    </View>
-    </View>
+          
+          <View style={styles.infoBlock}>
+            <Text style={styles.weatherDescription}>{getWeatherDescription(selectedDay.weather_code)}</Text>
+            <View style={styles.detailsGrid}>
+              <View style={styles.detailItem}><DetailIcon type="humidity" color={COLORS.text} /><View><Text style={styles.detailLabel}>Humidity</Text><Text style={styles.detailValue}>{current.relative_humidity_2m}%</Text></View></View>
+              <View style={styles.detailItem}><DetailIcon type="precipitation" color={COLORS.text} /><View><Text style={styles.detailLabel}>Precipitation</Text><Text style={styles.detailValue}>{selectedDay.precipitation} mm</Text></View></View>
+              <View style={styles.detailItem}><DetailIcon type="pressure" color={COLORS.text} /><View><Text style={styles.detailLabel}>Pressure</Text><Text style={styles.detailValue}>{Math.round(current.surface_pressure)} hPa</Text></View></View>
+              <View style={styles.detailItem}><DetailIcon type="wind" color={COLORS.text} /><View><Text style={styles.detailLabel}>Wind</Text><Text style={styles.detailValue}>{Math.round(selectedDay.wind_speed)} km/h</Text></View></View>
+            </View>
+            <View style={styles.sunGrid}>
+              <View style={styles.sunItem}><DetailIcon type="sunrise" color={COLORS.text} /><View><Text style={styles.sunLabel}>Sunrise</Text><Text style={styles.sunTime}>{formatTime(selectedDay.sunrise)}</Text></View></View>
+              <View style={styles.sunItem}><DetailIcon type="sunset" color={COLORS.text} /><View><Text style={styles.sunLabel}>Sunset</Text><Text style={styles.sunTime}>{formatTime(selectedDay.sunset)}</Text></View></View>
+            </View>
+          </View>
+          
+          {soilData && (
+            <View style={styles.infoBlock}>
+              <Text style={styles.weatherDescription}>Soil & Environment</Text>
+              <View style={styles.detailsGrid}>
+                <View style={styles.detailItem}><DetailIcon type="soil_moisture" color={COLORS.text} /><View><Text style={styles.detailLabel}>Soil Moisture</Text><Text style={styles.detailValue}>{parseFloat(soilData.field4).toFixed(1)}%</Text></View></View>
+                <View style={styles.detailItem}><DetailIcon type="temperature" color={COLORS.text} /><View><Text style={styles.detailLabel}>Temperature</Text><Text style={styles.detailValue}>{parseFloat(soilData.field1).toFixed(1)}°C</Text></View></View>
+                <View style={styles.detailItem}><DetailIcon type="humidity" color={COLORS.text} /><View><Text style={styles.detailLabel}>Humidity</Text><Text style={styles.detailValue}>{parseFloat(soilData.field2).toFixed(1)}%</Text></View></View>
+              </View>
+            </View>
+          )}
 
-    <View style={styles.detailItem}>
-      <View style={styles.detailsGrid}>
-        <DetailIcon type="pressure" color={COLORS.text} />
-        <View>
-        <Text style={styles.detailLabel}>Pressure</Text>
-        <Text style={styles.detailValue}>{Math.round(current.surface_pressure)} hPa</Text>
-        </View>
-    </View>
-    </View>
-    
-    
-     <View style={styles.detailItem}>
-      <View style={styles.detailsGrid}>
-        <DetailIcon type="wind" color={COLORS.text} />
-        <View>
-          <Text style={styles.detailLabel}>Wind</Text>
-          <Text style={styles.detailValue}>{Math.round(selectedDay.wind_speed)} km/h</Text>
-        </View>
-        </View>
-    </View>
-  </View>
-  <View style={styles.sunGrid}>
-    <View style={styles.sunItem}>
-         <DetailIcon type="sunrise" color={COLORS.text} />
-         <View>
-            <Text style={styles.sunLabel}>Sunrise</Text>
-            <Text style={styles.sunTime}>{formatTime(selectedDay.sunrise)}</Text>
-         </View>
-    </View>
-    <View style={styles.sunItem}>
-        <DetailIcon type="sunset" color={COLORS.text} />
-        <View>
-            <Text style={styles.sunLabel}>Sunset</Text>
-            <Text style={styles.sunTime}>{formatTime(selectedDay.sunset)}</Text>
-        </View>
-    </View>
-  </View>
-</View>
         </ScrollView>
       );
     }
@@ -291,4 +261,158 @@ const WeatherDashboard = () => {
     </SafeAreaView>
   );
 };
+
+const styles = StyleSheet.create({
+    dashboardWrapper: {
+        flex: 1,
+        backgroundColor: COLORS.background,
+    },
+    dashboardContainer: {
+        flex: 1,
+        paddingHorizontal: 20,
+    },
+    centered: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    loadingText: {
+        marginTop: 10,
+        color: COLORS.text,
+    },
+    errorText: {
+        color: COLORS.text,
+        textAlign: 'center',
+    },
+    header: {
+        paddingVertical: 20,
+    },
+    greeting: {
+        fontSize: 28,
+        fontWeight: 'bold',
+        color: COLORS.text,
+    },
+    date: {
+        fontSize: 16,
+        color: COLORS.textLight,
+        marginTop: 4,
+    },
+    mainCard: {
+        borderRadius: 20,
+        padding: 20,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    mainCardLeft: {
+        flex: 1,
+    },
+    mainCardRight: {
+        alignItems: 'center',
+    },
+    location: {
+        fontSize: 16,
+        color: COLORS.white,
+        fontWeight: '500',
+    },
+    mainTemp: {
+        fontSize: 64,
+        color: COLORS.white,
+        fontWeight: 'bold',
+    },
+    minMaxTemp: {
+        fontSize: 14,
+        color: COLORS.white,
+    },
+    forecastContainer: {
+        marginBottom: 20,
+    },
+    forecastItem: {
+        backgroundColor: COLORS.card,
+        borderRadius: 15,
+        padding: 15,
+        marginRight: 10,
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: COLORS.border,
+    },
+    forecastItemSelected: {
+        backgroundColor: COLORS.primary,
+        borderColor: COLORS.primary,
+    },
+    forecastText: {
+        color: COLORS.text,
+    },
+    forecastTextSelected: {
+        color: COLORS.white,
+    },
+    forecastDate: {
+        fontSize: 12,
+        color: COLORS.textLight,
+    },
+    forecastTemp: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginTop: 8,
+    },
+    infoBlock: {
+        backgroundColor: COLORS.card,
+        borderRadius: 20,
+        padding: 20,
+        marginBottom: 20,
+    },
+    weatherDescription: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: COLORS.text,
+        marginBottom: 20,
+    },
+    detailsGrid: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+    },
+    detailItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        width: '48%',
+        marginBottom: 20,
+    },
+    detailLabel: {
+        color: COLORS.textLight,
+        marginLeft: 10,
+    },
+    detailValue: {
+        color: COLORS.text,
+        fontWeight: 'bold',
+        marginLeft: 10,
+        fontSize: 16,
+    },
+    sunGrid: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 10,
+        borderTopWidth: 1,
+        borderTopColor: COLORS.border,
+        paddingTop: 20,
+    },
+    sunItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        width: '48%',
+    },
+    sunLabel: {
+        marginLeft: 10,
+        color: COLORS.textLight,
+    },
+    sunTime: {
+        marginLeft: 10,
+        color: COLORS.text,
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
+});
+
 export default WeatherDashboard;
+

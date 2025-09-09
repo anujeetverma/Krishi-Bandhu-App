@@ -31,6 +31,21 @@ const DiseaseDetectionScreen = () => {
   const [error, setError] = useState(null);
   const [prediction, setPrediction] = useState(null);
 
+  // --- IMPORTANT PERMISSIONS NOTE ---
+  // For the camera and image library to work, you MUST add permissions to your app.json file.
+  // Add the following "plugins" section inside your "expo" object in app.json:
+  /*
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you select images for disease detection.",
+          "cameraPermission": "The app accesses your camera to let you take photos of plants for disease detection."
+        }
+      ]
+    ]
+  */
+
   // Function to request permissions and pick an image
   const pickImage = async (fromCamera) => {
     let permissionResult;
@@ -46,10 +61,8 @@ const DiseaseDetectionScreen = () => {
     }
 
     const options = {
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
+      mediaTypes: ImagePicker.MediaType.Images,
+      quality: 0.8,
     };
 
     let pickerResult;
@@ -122,12 +135,7 @@ const DiseaseDetectionScreen = () => {
         </View>
 
         {imageUri ? (
-          <View style={{ width: '100%', alignItems: 'center' }}>
-            <Image source={{ uri: imageUri }} style={styles.imagePreview} />
-            <TouchableOpacity style={styles.retakeButton} onPress={() => pickImage(true)} activeOpacity={0.8}>
-              <Text style={styles.retakeButtonText}>Retake Picture</Text>
-            </TouchableOpacity>
-          </View>
+          <Image source={{ uri: imageUri }} style={styles.imagePreview} />
         ) : (
           <View style={styles.imagePlaceholder}>
             <Ionicons name="leaf-outline" size={80} color={COLORS.border} />
@@ -146,17 +154,19 @@ const DiseaseDetectionScreen = () => {
           </TouchableOpacity>
         </View>
         
-        <TouchableOpacity 
-            style={[styles.detectButton, (!imageUri || loading) && styles.buttonDisabled]} 
-            onPress={handleDetectDisease}
-            disabled={!imageUri || loading}
-        >
-          {loading ? (
-            <ActivityIndicator color={COLORS.white} />
-          ) : (
-            <Text style={styles.detectButtonText}>Detect Disease</Text>
-          )}
-        </TouchableOpacity>
+        {imageUri && (
+            <TouchableOpacity 
+                style={[styles.detectButton, loading && styles.buttonDisabled]} 
+                onPress={handleDetectDisease}
+                disabled={loading}
+            >
+              {loading ? (
+                <ActivityIndicator color={COLORS.white} />
+              ) : (
+                <Text style={styles.detectButtonText}>Detect Disease</Text>
+              )}
+            </TouchableOpacity>
+        )}
 
         {error && <Text style={styles.errorText}>{error}</Text>}
 
@@ -220,20 +230,6 @@ const styles = StyleSheet.create({
     marginBottom: 24,
     borderWidth: 2,
     borderColor: COLORS.border,
-  },
-  retakeButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    backgroundColor: COLORS.error,
-    borderRadius: 16,
-    marginTop: 10,
-    alignItems: 'center',
-    alignSelf: 'center',
-  },
-  retakeButtonText: {
-    color: COLORS.white,
-    fontWeight: '500',
-    fontSize: 14,
   },
   buttonGroup: {
     flexDirection: 'row',
@@ -304,3 +300,4 @@ const styles = StyleSheet.create({
 });
 
 export default DiseaseDetectionScreen;
+
