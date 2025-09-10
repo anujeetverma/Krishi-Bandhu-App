@@ -32,8 +32,8 @@ const DiseaseDetectionScreen = () => {
   const [prediction, setPrediction] = useState(null);
 
   // --- IMPORTANT PERMISSIONS NOTE ---
-  // For the camera and image library to work, you MUST add permissions to your app.json file.
-  // Add the following "plugins" section inside your "expo" object in app.json:
+  // For the camera and image library to work, you MUST add permissions to your app.json file and then
+  // RESTART your development server with `npx expo start --clear` for the changes to take effect.
   /*
     "plugins": [
       [
@@ -49,38 +49,48 @@ const DiseaseDetectionScreen = () => {
   // Function to request permissions and pick an image
   const pickImage = async (fromCamera) => {
     let permissionResult;
-    if (fromCamera) {
-      permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-    } else {
-      permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    }
-
-    if (permissionResult.granted === false) {
-      Alert.alert("Permission Required", "You need to grant permission to access photos to use this feature.");
-      return;
-    }
-
-    const options = {
-      mediaTypes: ImagePicker.MediaType.Images,
-      quality: 0.8,
-    };
-
-    let pickerResult;
     try {
-        if (fromCamera) {
-            pickerResult = await ImagePicker.launchCameraAsync(options);
-        } else {
-            pickerResult = await ImagePicker.launchImageLibraryAsync(options);
-        }
-        
-        if (pickerResult.canceled === false && pickerResult.assets && pickerResult.assets.length > 0) {
-          setImageUri(pickerResult.assets[0].uri);
-          setPrediction(null); // Clear previous prediction
-          setError(null);
-        }
+      if (fromCamera) {
+        console.log("Requesting camera permissions...");
+        permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+      } else {
+        console.log("Requesting media library permissions...");
+        permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      }
+
+      console.log("Permission result:", permissionResult);
+
+      if (permissionResult.granted === false) {
+        Alert.alert("Permission Required", `You need to grant permission to access the ${fromCamera ? 'camera' : 'photos'} to use this feature.`);
+        return;
+      }
+
+      const options = {
+        mediaTypes: ImagePicker.MediaTypeOptions.Images, // Corrected constant
+        quality: 0.8,
+        allowsEditing: true, // Optional: allows user to crop/edit
+      };
+
+      let pickerResult;
+      if (fromCamera) {
+          console.log("Launching camera...");
+          pickerResult = await ImagePicker.launchCameraAsync(options);
+      } else {
+          console.log("Launching image library...");
+          pickerResult = await ImagePicker.launchImageLibraryAsync(options);
+      }
+      
+      if (pickerResult.canceled === false && pickerResult.assets && pickerResult.assets.length > 0) {
+        console.log("Image selected:", pickerResult.assets[0].uri);
+        setImageUri(pickerResult.assets[0].uri);
+        setPrediction(null); // Clear previous prediction
+        setError(null);
+      } else {
+        console.log("Image picking was canceled.");
+      }
     } catch (e) {
-        console.error("ImagePicker Error:", e);
-        Alert.alert("Error", "Could not select image.");
+        console.error("An error occurred in pickImage function:", e);
+        Alert.alert("Error", "An unexpected error occurred while trying to select an image.");
     }
   };
 
@@ -93,24 +103,31 @@ const DiseaseDetectionScreen = () => {
     setPrediction(null);
 
     const formData = new FormData();
-    const filename = imageUri.split('/').pop();
-    const match = /\.(\w+)$/.exec(filename);
-    const type = match ? `image/${match[1]}` : `image`;
+    const uriParts = imageUri.split('.');
+    const fileType = uriParts[uriParts.length - 1];
 
-    formData.append('image', { uri: imageUri, name: filename, type });
+    formData.append('image', {
+      uri: imageUri,
+      name: `photo.${fileType}`,
+      type: `image/${fileType}`,
+    });
 
     try {
       const response = await fetch(API_URL, {
         method: 'POST',
         body: formData,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
+      
+      const responseText = await response.text();
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Server error: ${response.status} - ${errorText}`);
+        throw new Error(`Server error: ${response.status} - ${responseText}`);
       }
       
-      const result = await response.json();
+      const result = JSON.parse(responseText);
 
       if (result && result.prediction) {
           setPrediction(result.prediction);
@@ -119,8 +136,8 @@ const DiseaseDetectionScreen = () => {
       }
       
     } catch (e) {
-      console.error(e);
-      setError('Failed to connect to the server. Please check your connection and try again.');
+      console.error("Full fetch error details:", e);
+      setError(`Failed to connect or process the response. Details: ${e.message}`);
     } finally {
       setLoading(false);
     }
