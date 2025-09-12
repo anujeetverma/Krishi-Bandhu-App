@@ -22,7 +22,7 @@ const COLORS = {
 };
 
 // --- API Configuration ---
-// Make sure this is the correct public URL for your deployed model.
+// This URL must match the public address of your deployed Python API.
 const API_URL = 'https://drone-plant-counter.onrender.com/disease/detect';
 
 const DiseaseDetectionScreen = () => {
@@ -46,19 +46,14 @@ const DiseaseDetectionScreen = () => {
     ]
   */
 
-  // Function to request permissions and pick an image
   const pickImage = async (fromCamera) => {
     let permissionResult;
     try {
       if (fromCamera) {
-        console.log("Requesting camera permissions...");
         permissionResult = await ImagePicker.requestCameraPermissionsAsync();
       } else {
-        console.log("Requesting media library permissions...");
         permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
       }
-
-      console.log("Permission result:", permissionResult);
 
       if (permissionResult.granted === false) {
         Alert.alert("Permission Required", `You need to grant permission to access the ${fromCamera ? 'camera' : 'photos'} to use this feature.`);
@@ -66,35 +61,29 @@ const DiseaseDetectionScreen = () => {
       }
 
       const options = {
-        mediaTypes: ImagePicker.MediaTypeOptions.Images, // Corrected constant
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         quality: 0.8,
-        allowsEditing: true, // Optional: allows user to crop/edit
+        allowsEditing: true,
       };
 
       let pickerResult;
       if (fromCamera) {
-          console.log("Launching camera...");
           pickerResult = await ImagePicker.launchCameraAsync(options);
       } else {
-          console.log("Launching image library...");
           pickerResult = await ImagePicker.launchImageLibraryAsync(options);
       }
       
-      if (pickerResult.canceled === false && pickerResult.assets && pickerResult.assets.length > 0) {
-        console.log("Image selected:", pickerResult.assets[0].uri);
+      if (!pickerResult.canceled && pickerResult.assets && pickerResult.assets.length > 0) {
         setImageUri(pickerResult.assets[0].uri);
-        setPrediction(null); // Clear previous prediction
+        setPrediction(null);
         setError(null);
-      } else {
-        console.log("Image picking was canceled.");
       }
     } catch (e) {
-        console.error("An error occurred in pickImage function:", e);
-        Alert.alert("Error", "An unexpected error occurred while trying to select an image.");
+        console.error("ImagePicker Error:", e);
+        Alert.alert("Error", "Could not select image.");
     }
   };
 
-  // Function to upload the image and get a prediction
   const handleDetectDisease = async () => {
     if (!imageUri) return;
 
@@ -129,8 +118,12 @@ const DiseaseDetectionScreen = () => {
       
       const result = JSON.parse(responseText);
 
-      if (result && result.prediction) {
-          setPrediction(result.prediction);
+      // Updated to match the backend response keys: `predicted_disease` and `confidence`
+      if (result && result.predicted_disease) {
+          setPrediction({
+              disease: result.predicted_disease,
+              confidence: result.confidence
+          });
       } else {
           setError('Could not understand the response from the server.');
       }
@@ -190,7 +183,10 @@ const DiseaseDetectionScreen = () => {
         {prediction && (
             <View style={styles.resultCard}>
                 <Text style={styles.resultTitle}>Detection Result</Text>
-                <Text style={styles.resultText}>{prediction}</Text>
+                <Text style={styles.resultText}>{prediction.disease}</Text>
+                <Text style={styles.confidenceText}>
+                    Confidence: {(prediction.confidence * 100).toFixed(2)}%
+                </Text>
             </View>
         )}
       </ScrollView>
@@ -313,6 +309,12 @@ const styles = StyleSheet.create({
       fontSize: 22,
       fontWeight: 'bold',
       color: COLORS.text,
+      textTransform: 'capitalize',
+  },
+  confidenceText: {
+      fontSize: 14,
+      color: COLORS.text,
+      marginTop: 8,
   }
 });
 
